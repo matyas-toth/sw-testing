@@ -37,3 +37,15 @@
 - Nincs ellenőrizve, ha a gyakorlati pontszám negatív.
 - Nincs ellenőrizve, ha a gyakorlati pontszám nagyobb 40-nél.
 - A specifikáció szerint érvénytelen pontszám esetén hibát kell jelezni, de a kód ilyen esetekben is megpróbál jegyet számolni.
+
+# 5. Hibakeresés PackageClassifierban
+- A Small kategóriánál a specifikáció szerint a tömeg legfeljebb 2 kg lehet, a kód viszont weight < 2-t használ, így a pontosan 2 kg-os csomagot nem sorolja Small kategóriába.
+- A Small kategóriánál mindhárom méret legfeljebb 30 cm lehet, de a kód < 30-at használ, így ha valamelyik méret pontosan 30 cm, már nem lesz Small.
+- A Medium kategóriánál egyik méret sem lehet nagyobb 60 cm-nél, ehhez mindhárom méretre teljesülnie kell a <= 60 feltételnek.
+- A kód a Medium méreteknél || operátort használ && helyett, így elég ha csak egyetlen méret kisebb vagy egyenlő 60 cm-nél.
+  - Emiatt például egy 5 kg-os, 200x200x50 cm-es csomagot is MEDIUM-nak osztályoz, pedig OVERSIZE lenne.
+- Nincs ellenőrizve, ha a tömeg 0 vagy negatív.
+- Nincs ellenőrizve, ha a length 0 vagy negatív.
+- Nincs ellenőrizve, ha a width 0 vagy negatív.
+- Nincs ellenőrizve, ha a height 0 vagy negatív.
+- Az érvénytelen csomagokra INVALID értéket kellene visszaadni, a jelenlegi kód viszont akár SMALL vagy MEDIUM kategóriába is sorolhat negatív vagy 0 méretekkel rendelkező csomagot.
