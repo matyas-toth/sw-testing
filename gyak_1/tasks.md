@@ -9,3 +9,8 @@
 
 # 2. Hibakeresés ParkingFeeCalculatorban
 
+- A specifikáció szerint az első 15 perc ingyenes, viszont minutes < 15-tel ellenőriz a kód, így aki 15 percig parkol az már fizet.
+- Megkezdett órát lefele kerekít, floor helyett ceil szükséges
+- A vip kedvezmény nem jó, 20 forintot von le, nem 20%-ot
+- A negatív parkolási idő nincs kezelve
+
