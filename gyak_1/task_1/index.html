@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Szállítási díj tesztelése</title>
+</head>
+<body>
+    <h1>Szállítási díj tesztelése</h1>
+    <p>A teszteredmények a böngésző konzoljában láthatók.</p>
+
+    <script>
+        function calculateShippingCost(orderValue, weight, country, express) {
+            let shippingCost = 0;
+            if (country === "HU" && orderValue >= 20000) {
+                return 0;
+            }
+            if (weight < 5) {
+                shippingCost = 1500;
+            } else if (weight > 5 && weight < 20) {
+                shippingCost = 2500;
+            } else {
+                shippingCost = 5000;
+            }
+            if (country !== "HU") {
+                shippingCost = shippingCost * 2;
+            }
+            if (express === true) {
+                shippingCost = shippingCost + 50;
+            }
+
+            return shippingCost;
+        }
+
+        const testCases = [
+            { id: "T01", description: "Magyar rendelés 5 kg alatt", orderValue: 10000, weight: 4, country: "HU", express: false, expected: 1500 },
+            { id: "T02", description: "Magyar rendelés pontosan 5 kg", orderValue: 10000, weight: 5, country: "HU", express: false, expected: 2500 },
+            { id: "T03", description: "Magyar rendelés 5 és 20 kg között", orderValue: 10000, weight: 10, country: "HU", express: false, expected: 2500 },
+            { id: "T04", description: "Magyar rendelés pontosan 20 kg", orderValue: 10000, weight: 20, country: "HU", express: false, expected: 2500 },
+            { id: "T05", description: "Magyar rendelés 20 kg felett", orderValue: 10000, weight: 21, country: "HU", express: false, expected: 5000 },
+            { id: "T06", description: "Külföldi rendelésnél kétszeres díj", orderValue: 10000, weight: 4, country: "AT", express: false, expected: 3000 },
+            { id: "T07", description: "Kisbetűs magyar országkód", orderValue: 10000, weight: 4, country: "hu", express: false, expected: 1500 },
+            { id: "T08", description: "Pontosan 20 000 Ft-os magyar rendelés", orderValue: 20000, weight: 10, country: "HU", express: false, expected: 2500 },
+            { id: "T09", description: "20 000 Ft feletti magyar rendelés", orderValue: 20001, weight: 10, country: "HU", express: false, expected: 0 },
+            { id: "T10", description: "Expressz magyar szállítás", orderValue: 10000, weight: 4, country: "HU", express: true, expected: 2250 },
+            { id: "T11", description: "Expressz külföldi szállítás", orderValue: 10000, weight: 10, country: "AT", express: true, expected: 7500 },
+            { id: "T12", description: "Negatív rendelési érték", orderValue: -1, weight: 4, country: "HU", express: false, expected: "Hiba", expectsError: true },
+            { id: "T13", description: "Negatív tömeg", orderValue: 10000, weight: -1, country: "HU", express: false, expected: "Hiba", expectsError: true },
+            { id: "T14", description: "Nem kétbetűs országkód", orderValue: 10000, weight: 4, country: "HUN", express: false, expected: "Hiba", expectsError: true },
+            { id: "T15", description: "Kisbetűs külföldi országkód", orderValue: 10000, weight: 4, country: "at", express: false, expected: 3000 }
+        ];
+
+        const bugs = [
+            { id: "H01", error: "Az 5 kg-os csomag az 5000 Ft-os sávba kerül a várt 2500 Ft helyett.", reproducingTest: "T02" },
+            { id: "H02", error: "A 20 kg-os csomag az 5000 Ft-os sávba kerül a várt 2500 Ft helyett.", reproducingTest: "T04" },
+            { id: "H03", error: "A kisbetűs hu országkódot a függvény külföldinek tekinti.", reproducingTest: "T07" },
+            { id: "H04", error: "Pontosan 20 000 Ft-nál is ingyenes a magyar szállítás, pedig csak e fölött lenne az.", reproducingTest: "T08" },
+            { id: "H05", error: "Az expressz felár 50 Ft, nem az alapértelmezett szállítási díj 50%-a.", reproducingTest: "T10, T11" },
+            { id: "H06", error: "A negatív rendelési értéket a függvény nem utasítja el.", reproducingTest: "T12" },
+            { id: "H07", error: "A negatív tömeget a függvény nem utasítja el.", reproducingTest: "T13" },
+            { id: "H08", error: "A függvény nem ellenőrzi, hogy az országkód kétbetűs-e.", reproducingTest: "T14" }
+        ];
+
+        const results = testCases.map(testCase => {
+            let actual;
+            let passed;
+
+            try {
+                actual = calculateShippingCost(testCase.orderValue, testCase.weight, testCase.country, testCase.express);
+                passed = testCase.expectsError ? false : actual === testCase.expected;
+            } catch (error) {
+                actual = `Hiba: ${error.message}`;
+                passed = testCase.expectsError === true;
+            }
+
+            return {
+                azonosító: testCase.id,
+                teszteset: testCase.description,
+                rendelésiÉrték: testCase.orderValue,
+                tömeg: testCase.weight,
+                ország: testCase.country,
+                expressz: testCase.express,
+                elvárt: testCase.expected,
+                tényleges: actual,
+                eredmény: passed ? "SIKERES" : "SIKERTELEN"
+            };
+        });
+
+        console.log("Specifikáció értelmezése");
+        console.log("5 kg alatt: 1500 Ft; 5–20 kg között, a határokat is beleértve: 2500 Ft; 20 kg felett: 5000 Ft.");
+        console.log("Magyarországon csak 20 000 Ft felett ingyenes a szállítás. Külföldön a díj kétszeres, az expressz felár az alapértelmezett szállítási díj 50%-a.");
+        console.log("A rendelési érték és a tömeg nem lehet negatív. Az országkód érvényes, kétbetűs ISO-kód, kis- és nagybetűvel is megadható.");
+        console.log("Tesztesetek és kézi futtatás eredménye");
+        console.table(results);
+        console.log(`Összesen: ${results.length}, sikeres: ${results.filter(result => result.eredmény === "SIKERES").length}, sikertelen: ${results.filter(result => result.eredmény === "SIKERTELEN").length}`);
+        console.log("Megtalált hibák és reprodukáló teszteseteik");
+        console.table(bugs);
+    </script>
+</body>
+</html>
